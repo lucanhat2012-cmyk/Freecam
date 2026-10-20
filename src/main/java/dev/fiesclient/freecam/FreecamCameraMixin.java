@@ -22,9 +22,5 @@ public class FreecamCameraMixin {
 
         Camera camera = (Camera) (Object) this;
         camera.setPosition(FreecamController.getCameraPosition());
-        camera.setRotation(
-            FreecamController.getCameraYaw(),
-            FreecamController.getCameraPitch()
-        );
     }
 }
