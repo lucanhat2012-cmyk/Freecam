@@ -21,6 +21,5 @@ public class FreecamCameraMixin {
         if (!FreecamController.isEnabled()) return;
 
         Camera camera = (Camera) (Object) this;
-        camera.setPosition(FreecamController.getCameraPosition());
     }
 }
