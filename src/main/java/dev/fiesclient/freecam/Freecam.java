@@ -13,21 +13,19 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.decoration.ArmorStand;
 import org.lwjgl.glfw.GLFW;
 
 public class Freecam implements ClientModInitializer {
     private static KeyMapping openGuiKey;
-    private static boolean enabled = false;
-    private static double speed = 1.0;
-    private static ArmorStand cameraEntity;
 
     @Override
     public void onInitializeClient() {
-        KeyMapping.Category category = KeyMapping.Category.register(
-            Identifier.fromNamespaceAndPath("freecam", "controls")
-        );
+        KeyMapping.Category category =
+            KeyMapping.Category.register(
+                Identifier.fromNamespaceAndPath(
+                    "freecam", "controls"
+                )
+            );
 
         openGuiKey = KeyBindingHelper.registerKeyBinding(
             new KeyMapping(
@@ -45,96 +43,8 @@ public class Freecam implements ClientModInitializer {
                 }
             }
 
-            if (!enabled) return;
-
-            if (client.player == null || client.level == null
-                || cameraEntity == null) {
-                stopFreecam(client);
-                return;
-            }
-
-            double yaw = Math.toRadians(cameraEntity.getYRot());
-            double forwardX = -Math.sin(yaw);
-            double forwardZ = Math.cos(yaw);
-            double rightX = Math.cos(yaw);
-            double rightZ = Math.sin(yaw);
-
-            double dx = 0;
-            double dy = 0;
-            double dz = 0;
-
-            if (client.options.keyUp.isDown()) {
-                dx += forwardX;
-                dz += forwardZ;
-            }
-            if (client.options.keyDown.isDown()) {
-                dx -= forwardX;
-                dz -= forwardZ;
-            }
-            if (client.options.keyRight.isDown()) {
-                dx += rightX;
-                dz += rightZ;
-            }
-            if (client.options.keyLeft.isDown()) {
-                dx -= rightX;
-                dz -= rightZ;
-            }
-            if (client.options.keyJump.isDown()) dy += 1;
-            if (client.options.keyShift.isDown()) dy -= 1;
-
-            double length = Math.sqrt(dx * dx + dy * dy + dz * dz);
-
-            if (length > 0) {
-                double amount = 0.25 * speed;
-                if (client.options.keySprint.isDown()) {
-                    amount *= 2;
-                }
-
-                cameraEntity.setPos(
-                    cameraEntity.getX() + dx / length * amount,
-                    cameraEntity.getY() + dy / length * amount,
-                    cameraEntity.getZ() + dz / length * amount
-                );
-            }
+            FreecamController.tick(client);
         });
-    }
-
-    private static void startFreecam(Minecraft client) {
-        if (client.player == null || client.level == null) return;
-
-        cameraEntity = new ArmorStand(
-            EntityType.ARMOR_STAND, client.level
-        );
-
-        cameraEntity.setPos(
-            client.player.getX(),
-            client.player.getY(),
-            client.player.getZ()
-        );
-        cameraEntity.setYRot(client.player.getYRot());
-        cameraEntity.setXRot(client.player.getXRot());
-        cameraEntity.setNoGravity(true);
-        cameraEntity.setInvisible(true);
-
-        enabled = true;
-        client.setCameraEntity(cameraEntity);
-    }
-
-    private static void stopFreecam(Minecraft client) {
-        enabled = false;
-        cameraEntity = null;
-
-        if (client.player != null) {
-            client.setCameraEntity(client.player);
-        }
-    }
-
-    private static void toggleFreecam(Minecraft client) {
-        if (enabled) {
-            stopFreecam(client);
-        } else {
-            startFreecam(client);
-        }
     }
 
     public static class FreecamScreen extends Screen {
@@ -163,35 +73,58 @@ public class Freecam implements ClientModInitializer {
             g.fill(x, y, x + w, y + 3, ACCENT);
 
             g.drawString(font, "Freecam", x + 14, y + 14, ACCENT);
-            g.drawString(font, "Made by FiesClient",
-                x + 14, y + 29, MUTED);
+            g.drawString(
+                font, "Made by FiesClient",
+                x + 14, y + 29, MUTED
+            );
 
             int bx = x + 14;
             int by = y + 55;
             int bw = w - 28;
 
-            g.fill(bx, by, bx + bw, by + 28,
-                enabled ? 0xFF63304F : 0xFF392438);
+            g.fill(
+                bx, by, bx + bw, by + 28,
+                FreecamController.isEnabled()
+                    ? 0xFF63304F : 0xFF392438
+            );
 
             g.drawCenteredString(
                 font,
-                enabled ? "Freecam: ON" : "Freecam: OFF",
+                FreecamController.isEnabled()
+                    ? "Freecam: ON" : "Freecam: OFF",
                 bx + bw / 2, by + 10, TEXT
             );
 
-            g.drawString(font, "Camera speed: " + speed + "x",
-                bx, by + 42, TEXT);
+            double speed = FreecamController.getSpeed();
 
-            g.fill(bx, by + 59, bx + bw, by + 63, 0xFF624052);
-            g.fill(bx, by + 59,
+            g.drawString(
+                font,
+                String.format(
+                    java.util.Locale.ROOT,
+                    "Camera speed: %.1fx", speed
+                ),
+                bx, by + 42, TEXT
+            );
+
+            g.fill(
+                bx, by + 59, bx + bw, by + 63,
+                0xFF624052
+            );
+            g.fill(
+                bx, by + 59,
                 bx + (int) (bw * speed / 5.0),
-                by + 63, ACCENT);
+                by + 63, ACCENT
+            );
 
-            g.drawString(font, "WASD move, Space/Shift up/down",
-                bx, by + 70, MUTED);
+            g.drawString(
+                font, "WASD move, Space/Shift up/down",
+                bx, by + 70, MUTED
+            );
 
-            g.drawCenteredString(font, "RIGHT SHIFT / ESC to close",
-                width / 2, y + h - 17, MUTED);
+            g.drawCenteredString(
+                font, "RIGHT SHIFT / ESC to close",
+                width / 2, y + h - 17, MUTED
+            );
         }
 
         @Override
@@ -211,15 +144,20 @@ public class Freecam implements ClientModInitializer {
 
                 if (mx >= bx && mx <= bx + bw
                     && my >= y + 55 && my <= y + 83) {
-                    toggleFreecam(Minecraft.getInstance());
+                    FreecamController.toggle(
+                        Minecraft.getInstance()
+                    );
                     return true;
                 }
 
                 if (mx >= bx && mx <= bx + bw
-                    && my >= y + 114 && my <= y + 120) {
-                    speed = Math.max(0.5, Math.min(5.0,
-                        5.0 * (mx - bx) / bw));
-                    speed = Math.round(speed * 10) / 10.0;
+                    && my >= y + 109 && my <= y + 127) {
+                    double newSpeed =
+                        5.0 * (mx - bx) / bw;
+
+                    FreecamController.setSpeed(
+                        Math.max(0.5, Math.min(5.0, newSpeed))
+                    );
                     return true;
                 }
             }
