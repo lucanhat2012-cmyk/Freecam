@@ -9,6 +9,8 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import org.lwjgl.glfw.GLFW;
@@ -103,9 +105,12 @@ public class Freecam implements ClientModInitializer {
 
         @Override
         public boolean mouseClicked(
-            double mouseX, double mouseY, int button
+            MouseButtonEvent event, boolean doubleClick
         ) {
-            if (button == 0) {
+            double mouseX = event.x();
+            double mouseY = event.y();
+
+            if (event.button() == 0) {
                 int w = Math.min(320, width - 20);
                 int h = Math.min(190, height - 20);
                 int x = (width - w) / 2;
@@ -128,19 +133,20 @@ public class Freecam implements ClientModInitializer {
                 }
             }
 
-            return super.mouseClicked(mouseX, mouseY, button);
+            return super.mouseClicked(event, doubleClick);
         }
 
         @Override
-        public boolean keyPressed(
-            int keyCode, int scanCode, int modifiers
-        ) {
+        public boolean keyPressed(KeyEvent event) {
+            int keyCode = event.key();
+
             if (keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT
                 || keyCode == GLFW.GLFW_KEY_ESCAPE) {
                 onClose();
                 return true;
             }
-            return super.keyPressed(keyCode, scanCode, modifiers);
+
+            return super.keyPressed(event);
         }
 
         @Override
@@ -154,3 +160,4 @@ public class Freecam implements ClientModInitializer {
         }
     }
 }
+
