@@ -1,0 +1,21 @@
+
+{
+  "schemaVersion": 1,
+  "id": "freecam",
+  "version": "${version}",
+  "name": "Freecam",
+  "description": "Freecam — Made by FiesClient",
+  "authors": ["FiesClient"],
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "dev.fiesclient.freecam.Freecam"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
