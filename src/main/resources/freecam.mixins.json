@@ -3,7 +3,8 @@
   "package": "dev.fiesclient.freecam",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "FreecamCameraMixin"
+    "FreecamCameraMixin",
+    "FreecamMouseMixin"
   ],
   "injectors": {
     "defaultRequire": 1
