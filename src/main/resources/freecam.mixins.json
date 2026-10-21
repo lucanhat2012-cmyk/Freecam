@@ -4,7 +4,8 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "FreecamCameraMixin",
-    "FreecamMouseMixin"
+    "FreecamMouseMixin",
+    "FreecamInputMixin"
   ],
   "injectors": {
     "defaultRequire": 1
